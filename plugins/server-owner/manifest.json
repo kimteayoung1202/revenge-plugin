@@ -1,0 +1,19 @@
+{
+  "format": 1,
+  "id": "dev.kimteayoung1202.server-owner",
+  "name": "Server Owner",
+  "description": "Shows the owner of the currently selected Discord server.",
+  "author": "kimteayoung1202",
+  "version": "1.0.0",
+  "dependencies": {
+    "revenge.api": {
+      "version": ">=1 <2"
+    },
+    "discord": {
+      "version": "*"
+    }
+  },
+  "dist": {
+    "script": "index.js"
+  }
+}
