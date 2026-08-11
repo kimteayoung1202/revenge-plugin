@@ -37,21 +37,14 @@ jobs:
       - name: Generate repository index
         run: >
           bun node_modules/@revenge-mod/plugin-cli/src/main.ts generate-index
-          --dist dist
+          --dist build/dist
           --base-url https://kimteayoung1202.github.io/revenge-plugin/
 
       - name: Prepare Pages
         run: |
           mkdir -p public
-
-          if [ -d dist ]; then
-            cp -r dist/. public/
-          fi
-
-          if [ -f index.json ]; then
-            cp index.json public/
-          fi
-
+          cp -r build/dist/. public/
+          cp index.json public/
           touch public/.nojekyll
 
           echo "=== Pages contents ==="
