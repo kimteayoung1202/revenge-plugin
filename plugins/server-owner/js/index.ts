@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { ServerOwnerCard } from "./ui";
 
 type Guild = {
     id: string;
@@ -26,9 +26,7 @@ export default plugin({
                 GuildStore = store;
 
                 console.log(
-                    "[ServerOwner] GuildStore loaded:",
-                    Object.keys(store.getGuilds()).length,
-                    "guilds"
+                    "[ServerOwner] GuildStore ready"
                 );
             }
         );
@@ -49,6 +47,24 @@ export function getServerOwner(guildId: string) {
     return {
         guildId: guild.id,
         guildName: guild.name ?? "Unknown Server",
-        ownerId: guild.ownerId ?? guild.owner_id ?? null,
+        ownerId:
+            guild.ownerId ??
+            guild.owner_id ??
+            null,
     };
+}
+
+export function ServerOwnerInfo({
+    guildId,
+}: {
+    guildId: string;
+}) {
+    const owner = getServerOwner(guildId);
+
+    if (!owner) return null;
+
+    return ServerOwnerCard({
+        guildName: owner.guildName,
+        ownerId: owner.ownerId,
+    });
 }
