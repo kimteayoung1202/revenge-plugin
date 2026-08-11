@@ -1,40 +1,54 @@
-import { findByPropsLazy } from '@revenge-mod/modules/metro'
+import type { ReactElement } from "react";
 
-const GuildStore = findByPropsLazy('getGuild', 'getGuilds')
-const SelectedGuildStore = findByPropsLazy('getGuildId')
-const UserStore = findByPropsLazy('getUser', 'getCurrentUser')
+type Guild = {
+    id: string;
+    name?: string;
+    ownerId?: string;
+    owner_id?: string;
+};
 
-function getOwner() {
-	const guildId = SelectedGuildStore?.getGuildId?.()
-	if (!guildId) return null
+type GuildStore = {
+    getGuild(id: string): Guild | undefined;
+    getGuilds(): Record<string, Guild>;
+};
 
-	const guild = GuildStore?.getGuild?.(guildId)
-	if (!guild) return null
-
-	const ownerId = guild.ownerId ?? guild.owner_id
-	if (!ownerId) return null
-
-	const user = UserStore?.getUser?.(ownerId)
-
-	return {
-		guildId,
-		guildName: guild.name ?? 'Unknown server',
-		ownerId: String(ownerId),
-		username: user?.username ?? null,
-		globalName: user?.globalName ?? user?.global_name ?? null,
-	}
-}
+let GuildStore: GuildStore | undefined;
+let unsubscribe: (() => void) | undefined;
 
 export default plugin({
-	start() {
-		;(globalThis as any).__revengeServerOwner = getOwner
+    start({ modules }) {
+        const { getModules } = modules.finders;
+        const { withProps } = modules.finders.filters;
 
-		console.log('[Server Owner] started')
-		console.log('[Server Owner] current owner:', getOwner())
-	},
+        unsubscribe = getModules(
+            withProps<GuildStore>("getGuild", "getGuilds"),
+            store => {
+                GuildStore = store;
 
-	stop() {
-		delete (globalThis as any).__revengeServerOwner
-		console.log('[Server Owner] stopped')
-	},
-})
+                console.log(
+                    "[ServerOwner] GuildStore loaded:",
+                    Object.keys(store.getGuilds()).length,
+                    "guilds"
+                );
+            }
+        );
+    },
+
+    stop() {
+        unsubscribe?.();
+        unsubscribe = undefined;
+        GuildStore = undefined;
+    },
+});
+
+export function getServerOwner(guildId: string) {
+    const guild = GuildStore?.getGuild(guildId);
+
+    if (!guild) return null;
+
+    return {
+        guildId: guild.id,
+        guildName: guild.name ?? "Unknown Server",
+        ownerId: guild.ownerId ?? guild.owner_id ?? null,
+    };
+}
