@@ -23,16 +23,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      - name: Install dependencies
-        run: bun install
-
-      - name: Build plugins
-        run: bun node_modules/@revenge-mod/plugin-cli/src/main.ts build
+      - name: Package plugins
+        run: ./gradlew packageAllPlugins
 
       - name: Generate repository index
         run: >
@@ -43,12 +46,12 @@ jobs:
       - name: Prepare Pages
         run: |
           mkdir -p public
-          cp -r build/dist/. public/
+          cp build/dist/*.zip public/
           cp index.json public/
           touch public/.nojekyll
 
           echo "=== Pages contents ==="
-          find public -maxdepth 5 -type f -print
+          find public -type f -print
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -67,6 +70,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
