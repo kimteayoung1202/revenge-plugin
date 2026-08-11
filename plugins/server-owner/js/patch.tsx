@@ -1,6 +1,7 @@
 import React from "react";
 
-import { ServerOwnerInfo } from "./index";
+import { ServerOwnerCard } from "./ui";
+import { getServerOwner } from "./index";
 
 type GuildProps = {
     guild?: {
@@ -9,12 +10,29 @@ type GuildProps = {
     guildId?: string;
 };
 
+function ServerOwnerInfo({
+    guildId,
+}: {
+    guildId: string;
+}) {
+    const owner = getServerOwner(guildId);
+
+    if (!owner) return null;
+
+    return (
+        <ServerOwnerCard
+            guildName={owner.guildName}
+            ownerId={owner.ownerId}
+        />
+    );
+}
+
 export function installGuildInfoPatch(api: any) {
     const { getModules } = api.modules.finders;
     const { withProps } = api.modules.finders.filters;
     const { afterJSX } = api.react;
 
-    return getModules(
+    const unsubscribe = getModules(
         withProps("GuildProfile"),
         (module: any) => {
             if (!module?.GuildProfile)
@@ -35,7 +53,7 @@ export function installGuildInfoPatch(api: any) {
                             return element;
 
                         const children =
-                            element.props?.children;
+                            element?.props?.children;
 
                         if (Array.isArray(children)) {
                             children.push(
@@ -52,4 +70,6 @@ export function installGuildInfoPatch(api: any) {
             );
         }
     );
+
+    return unsubscribe;
 }
